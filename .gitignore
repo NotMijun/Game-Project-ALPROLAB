@@ -1,52 +1,218 @@
-# Prerequisites
-*.d
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+// Struktur untuk stat player
+struct Character {
+    char name[50];
+    int strength;
+    int agility;
+    int defense;
+    int gold;
+    int experience;
+    int health;
+};
 
-# Linker output
-*.ilk
-*.map
-*.exp
+// Fungsi bikin karakter baru
+struct Character createCharacter() {
+    struct Character character;
+    printf("Enter your character's name: ");
+    scanf("%s", character.name);
+    character.strength = 10;
+    character.agility = 10;
+    character.defense = 10;
+    character.gold = 10; 
+    character.experience = 0;
+    character.health = 100;
+    return character;
+}
 
-# Precompiled Headers
-*.gch
-*.pch
+// Fungsi untuk nampilin stat karakter
+void printCharacterStats(struct Character character) {
+    printf("Character Name: %s\n", character.name);
+    printf("Strength: %d\n", character.strength);
+    printf("Agility: %d\n", character.agility);
+    printf("Defense: %d\n", character.defense);
+    printf("Gold: %d\n", character.gold);
+    printf("Experience: %d\n", character.experience);
+    printf("Health: %d\n", character.health);
+    printf("\n");
+}
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+// Fungsi ngeroll dadu
+int rollDice() {
+    return rand() % 20 + 1;
+}
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
+// Fungsi level up stat
+void levelUp(struct Character *player) {
+    int choice;
+    printf("Congratulations! You have earned enough experience to level up!\n");
+    printf("Which stat would you like to level up?\n");
+    printf("1. Strength\n");
+    printf("2. Agility\n");
+    printf("3. Defense\n");
+    printf("Enter your choice: ");
+    scanf("%d", &choice);
+    
+    switch (choice) {
+        case 1:
+            player->strength += 5;
+            break;
+        case 2:
+            player->agility += 5;
+            break;
+        case 3:
+            player->defense += 5;
+            break;
+        default:
+            printf("Invalid choice. No stat was leveled up.\n");
+            break;
+    }
+    printf("Stat leveled up!\n");
+}
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+// Fungsi bikin stat opponent
+struct Character generateOpponentStats() {
+    struct Character opponent;
+    printf("Enter opponent's name: ");
+    scanf("%s", opponent.name);
+    opponent.strength = rand() % 10 + 5; // Random strength antara 5 sampe 14
+    opponent.agility = rand() % 10 + 5; // Random agility antara 5 sampe 14
+    opponent.defense = rand() % 10 + 5; // Random defense antara 5 sampe 14
+    opponent.health = 100; // Start 100 health
+    return opponent;
+}
+ 
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+// Fungsi buat simulasi battle
+void battle(struct Character *player, struct Character *opponent) {
+    printf("You are battling against %s!\n", opponent->name);
+    
+    // Battle loop
+    while (player->health > 0 && opponent->health > 0) {
+        // Display character sama opponent stats
+        printf("Character Stats:\n");
+        printCharacterStats(*player);
+        printf("Opponent Stats:\n");
+        printCharacterStats(*opponent);
+        
+        // Prompt buat action
+        printf("Choose your action:\n");
+        printf("1. Attack\n");
+        printf("2. Defend\n");
+        printf("Enter your choice: ");
+        int choice;
+        scanf("%d", &choice);
+        
+ // Player turn
+if (choice == 1) {
+    printf("Rolling the dice...\n");
+    int playerRoll = rollDice();
+    int opponentRoll = rollDice();
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+    printf("You rolled a %d!\n", playerRoll);
+    printf("Opponent rolled a %d!\n", opponentRoll);
+
+    int playerAttack = player->strength + playerRoll;
+    int opponentDefense = opponent->defense + opponentRoll;
+
+    int damageDealt = playerAttack - opponentDefense;
+
+    if (playerRoll == 20) {
+        damageDealt *= 2; // Double damage kalo critical hit (ngeroll 20)
+        printf("Critical hit! You dealt double damage!\n");
+    }
+
+    if (damageDealt > 0) {
+        opponent->health -= damageDealt;
+        printf("You attacked %s and dealt %d damage!\n", opponent->name, damageDealt);
+    } else {
+        printf("Your attack was blocked by %s's defense!\n", opponent->name);
+    }
+} else if (choice == 2) {
+            printf("You chose to defend.\n");
+        } else {
+            printf("Invalid choice. Please choose a valid action.\n");
+            continue;
+        }
+        
+        // Cek kalo opponent mati
+        if (opponent->health <= 0) {
+            printf("You defeated %s!\n", opponent->name);
+            
+            // Update player stat
+            player->gold += 10;
+            player->experience += 5;
+            
+            // Cek kalo player bisa level up
+            if (player->experience >= 10) {
+                levelUp(player);
+                player->experience = 0;
+                
+                // Bikin opponent stats baru
+                *opponent = generateOpponentStats();
+            }
+            
+            break;
+        }
+        
+        // Opponent turn
+printf("Opponent's turn...\n");
+int opponentRoll = rollDice();
+int playerDefenseRoll = rollDice(); // Roll buat player defense
+
+printf("Opponent rolled a %d!\n", opponentRoll);
+printf("You rolled a %d!\n", playerDefenseRoll);
+
+int opponentAttack = opponent->strength + opponentRoll;
+int playerDefense = player->defense + playerDefenseRoll;
+
+int damageDealt = opponentAttack - playerDefense;
+
+if (opponentRoll == 20) {
+    damageDealt *= 2; // Double damage klo critical hit
+    printf("Critical hit! %s dealt double damage!\n", opponent->name);
+}
+
+if (damageDealt > 0) {
+    player->health -= damageDealt;
+    printf("%s attacked you and dealt %d damage!\n", opponent->name, damageDealt);
+} else {
+    printf("%s's attack was blocked by your defense!\n", opponent->name);
+}
+
+        // Cek kalo player mati
+        if (player->health <= 0) {
+            printf("You were defeated by %s!\n", opponent->name);
+            printf("Game Over!\n");
+            exit(0);
+        }
+        
+        printf("\n");
+    }
+}
+
+int main() {
+    struct Character player = createCharacter();
+    struct Character opponent = generateOpponentStats();
+    int continueBattling = 1;
+    
+    srand(time(NULL)); // buat random number generator
+    
+    printf("Welcome, %s! Let's start your adventure!\n\n", player.name);
+    
+    // Game loop
+    while (continueBattling) {
+        // Simulate battles 
+        battle(&player, &opponent);
+        
+        // Nanyain player mau main lagi atau engga
+        printf("Do you want to continue battling? (1 for Yes, 0 for No): ");
+        scanf("%d", &continueBattling);
+        printf("\n");
+    }
+    
+    printf("Thank you for playing! Goodbye!\n");
+    return 0;
+}
